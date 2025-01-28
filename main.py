@@ -95,8 +95,6 @@ def main(args):
         losses_seg_A = AverageMeter()
         losses_seg_B = AverageMeter()
         losses_bcd = AverageMeter()
-        losses_bscc = AverageMeter()
-        losses_cont = AverageMeter()
         losses_total = AverageMeter()
         
         model.train()
@@ -105,27 +103,13 @@ def main(args):
             img_A, img_B, label_BCD, label_SGA, label_SGB = split_sample(sample, seg_pretrain=args.seg_pretrain)
             imgs = torch.cat([img_A, img_B], dim=1) 
             
-            # whether contrastive learning
-            if args.with_sacl:
-                outputs = model(imgs, label_SGA, label_SGB, label_BCD, test=False, warmup=warmup)
-            elif args.model == "CVEOScd1" or args.model == "CVEOScd" or args.model == "CVEOScd2" or args.model == "CVEOScd3" or args.model == "CVEOScd0" or args.model == "CVEOScd4" or args.model == "CVEOScd5":
+            if args.model == "CVEOScd4":
                 outputs = model(img_A=img_A, img_B=img_B)
-            elif args.with_bscc:
-                outputs = model(imgs, label_BCD=label_BCD, test=False)
-            elif args.model == "HGINet" or args.model == "BiSRNet" or args.model == "SSCDl" or args.model == "HGINet_mini":
-                out_change, outputs_A, outputs_B = model(img_A, img_B)
-                outputs = {}
-                outputs['BCD'] = out_change
-                outputs['seg_A'] = outputs_A
-                outputs['seg_B'] = outputs_B
             else:
                 outputs = model(imgs)
-            
-            # whether only segmentation
             if not args.only_seg:
                 loss_cd = loss_bcd(outputs['BCD'], label_BCD)
             
-
             # whether only binary change detection or seg_pretrain
             if not args.only_bcd and (not args.seg_pretrain):
                 loss_seg_A = loss_seg(outputs['seg_A'], label_SGA)
@@ -133,51 +117,31 @@ def main(args):
             elif not args.only_bcd and args.seg_pretrain:
                 loss_seg_A = loss_seg(torch.cat([outputs['seg_A'], outputs['seg_B']], dim=0), torch.cat([label_SGA, label_SGB], dim=0))
                 loss_seg_B = torch.tensor(0)
-            elif args.only_bcd:
-                loss_seg_A = torch.tensor(0)
-                loss_seg_B = torch.tensor(0)
 
-            # only global: must not warmup; only local: anyway 
-            flag = (not warmup) or args.local_contrast
-            if args.with_sacl and flag:
-                loss_contrast = outputs['contrast_loss']
-                losses_cont.update(loss_contrast.item())
-            else:
-                loss_contrast = torch.tensor(0)
-    
-            # bscc loss
-            if args.with_bscc:
-                loss_bscc = outputs['bscc_loss']   
-            else:
-                loss_bscc = torch.tensor(0)
             
             # total loss   
-            loss = loss_cd + loss_seg_A + loss_seg_B #  + loss_contrast + loss_bscc
+            loss = loss_cd + loss_seg_A + loss_seg_B 
             
-
             optimizer.zero_grad()
-            ##########################
-            loss.backward() # Computes the gradient 
-            ##########################
-            optimizer.step() # update params by the gradient
+            loss.backward() 
+            optimizer.step() 
 
             
             losses_bcd.update(loss_cd.item())    
-            losses_bscc.update(loss_bscc.item())        
             losses_seg_A.update(loss_seg_A.item())
             losses_seg_B.update(loss_seg_B.item())
             losses_total.update(loss.item())
                 
             if batch_idx % args.print_step == 0 or batch_idx == len(train_loader)-1:
-                print('[Epoch:%3d/%3d | Batch:%4d/%4d] loss_total: %.4f loss_bcd: %.4f loss_segA: %.4f loss_segB: %.4f loss_contrast: %.4f loss_bscc: %.4f lr: %5f' % 
+                print('[Epoch:%3d/%3d | Batch:%4d/%4d] loss_total: %.4f loss_bcd: %.4f loss_segA: %.4f loss_segB: %.4f lr: %5f' % 
                     (epoch, args.epochs, batch_idx+1, train_loader.__len__(), losses_total.avg, 
-                    losses_bcd.avg, losses_seg_A.avg, losses_seg_B.avg, losses_cont.avg, losses_bscc.avg, get_lr(optimizer))
+                    losses_bcd.avg, losses_seg_A.avg, losses_seg_B.avg, get_lr(optimizer))
                 )
                 
         lr_scheduler.step() 
             
-        Log.info('[Training   Epoch:%3d/%3d] loss_total: %.4f loss_bcd: %.4f loss_segA: %.4f loss_segB: %.4f loss_contrast: %.4f loss_bscc: %.4f lr: %f' % 
-                (epoch, args.epochs, losses_total.avg, losses_bcd.avg, losses_seg_A.avg, losses_seg_B.avg, losses_cont.avg, losses_bscc.avg, get_lr(optimizer))) 
+        Log.info('[Training   Epoch:%3d/%3d] loss_total: %.4f loss_bcd: %.4f loss_segA: %.4f loss_segB: %.4f lr: %f' % 
+                (epoch, args.epochs, losses_total.avg, losses_bcd.avg, losses_seg_A.avg, losses_seg_B.avg, get_lr(optimizer))) 
         
         # validation
         evaluator_bcd.reset()
@@ -197,16 +161,9 @@ def main(args):
                 img_A, img_B, label_BCD, label_SGA, label_SGB = split_sample(sample, seg_pretrain=args.seg_pretrain)    
                 
                 imgs = torch.cat([img_A, img_B], dim=1) 
-                if args.with_sacl or args.with_bscc:
-                    outputs = model(imgs, test=True)   
-                elif args.model == "CVEOScd1" or args.model == "CVEOScd" or args.model == "CVEOScd2" or args.model == "CVEOScd3" or args.model == "CVEOScd0" or args.model == "CVEOScd4" or args.model == "CVEOScd5":
+                
+                if args.model == "CVEOScd4":
                     outputs = model(img_A=img_A, img_B=img_B)
-                elif args.model == "HGINet" or args.model == "BiSRNet" or args.model == "SSCDl" or args.model == "HGINet_mini":
-                    out_change, outputs_A, outputs_B = model(img_A, img_B)
-                    outputs = {}
-                    outputs['BCD'] = out_change
-                    outputs['seg_A'] = outputs_A
-                    outputs['seg_B'] = outputs_B
                 else:
                     outputs = model(imgs)
                 
@@ -235,17 +192,6 @@ def main(args):
                     pred_bcd = outputs['BCD'].sigmoid().squeeze().cpu().detach().numpy().round().astype('int')
                     evaluator_bcd.add_batch(label_BCD.cpu().numpy().astype('int').squeeze(), pred_bcd)
                 
-                # if not args.only_bcd and args.separate_val_seg:
-                #     pred_seg_A = torch.argmax(outputs['seg_A'], 1).cpu().detach().numpy().astype('int')
-                #     evaluator_seg_A.add_batch(label_SGA.cpu().numpy().astype('int'), pred_seg_A)
-                #     pred_seg_B = torch.argmax(outputs['seg_B'], 1).cpu().detach().numpy().astype('int')
-                #     evaluator_seg_B.add_batch(label_SGB.cpu().numpy().astype('int'), pred_seg_B)
-                # elif not args.only_bcd and (not args.separate_val_seg):
-                #     pred_seg_A = torch.argmax(outputs['seg_A'], 1).cpu().detach().numpy().astype('int')
-                #     pred_seg_B = torch.argmax(outputs['seg_B'], 1).cpu().detach().numpy().astype('int')
-                #     pred_seg = np.concatenate([pred_seg_A, pred_seg_B], axis=0)
-                #     label_seg = torch.cat([label_SGA, label_SGB], dim=0)
-                #     evaluator_seg_total.add_batch(label_seg.cpu().numpy().astype('int'), pred_seg)
                 if not args.only_bcd:
                     pred_seg_A = torch.argmax(outputs['seg_A'], 1).cpu().detach().numpy().astype('int')
                     evaluator_seg_A.add_batch(label_SGA.cpu().numpy().astype('int'), pred_seg_A)
@@ -305,9 +251,6 @@ def main(args):
             metric_best_dict["mIoU_SEG_total"] = mIoU_seg_total
             epoch_best = epoch
             metric_best = metric_current
-
-            # if args.epochs > 0:   
-            #     if epoch > 0:
 
             # save ckpt when achieve higheset perf.
             saver.save_checkpoint({
