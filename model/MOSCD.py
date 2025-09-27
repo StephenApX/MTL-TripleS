@@ -53,13 +53,10 @@ class ChangeDetectionHead(nn.Module):
         self.upsampling_scale_factor = upsampling
         self.upsampling = nn.modules.UpsamplingBilinear2d(scale_factor=upsampling) if self.upsampling_scale_factor > 1 else nn.Identity()
         
-    def forward(self, x, with_tcl):  
+    def forward(self, x):  
         x = self.convs(x)
         x_upsampling = self.upsampling(x)
-        if with_tcl:
-            return x, x_upsampling
-        elif not with_tcl:
-            return torch.tensor(0), x_upsampling
+        return torch.tensor(0), x_upsampling
 
 
 class ProjectionHead(nn.Module):
@@ -82,12 +79,11 @@ class Squeeze2(nn.Module):
     def forward(self, x):
         return x.squeeze(dim=2)
 
-class TempAttBlock(nn.Module):
+class TMEBlock(nn.Module):
     def __init__(self, in_channel, out_channel, kernel_size=3):
         super().__init__()        
         self.block = nn.Sequential(
             nn.modules.Conv2d(in_channel, out_channel, 3, 1, 1, dilation=1),
-            # Squeeze2(),
             nn.modules.BatchNorm2d(out_channel),
             nn.modules.ReLU(True)
         )
@@ -97,11 +93,11 @@ class TempAttBlock(nn.Module):
         return x
 
 
-class TempAtt(nn.Module):
+class TME(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(TempAtt, self).__init__()   
+        super(TME, self).__init__()   
         
-        self.tempatt_list = nn.ModuleList([TempAttBlock(in_channel, out_channel) for in_channel, out_channel in zip(in_channels, out_channels)])
+        self.tempatt_list = nn.ModuleList([TMEBlock(in_channel, out_channel) for in_channel, out_channel in zip(in_channels, out_channels)])
         
     def forward(self, features_A, features_B):
         TempAtt_features_A = [tempatt(fa) for tempatt, fa in zip(self.tempatt_list, features_A)]
@@ -111,9 +107,9 @@ class TempAtt(nn.Module):
     
 
 
-class CVEOScd4(nn.Module):
+class MOSCD(nn.Module):
     def __init__(self, args):
-        super(CVEOScd4, self).__init__()
+        super(MOSCD, self).__init__()
         self.args = args
         self.criterion = nn.CrossEntropyLoss()
 
@@ -140,7 +136,7 @@ class CVEOScd4(nn.Module):
         ) 
         
         # feat-bcd branch
-        self.tempAtt = TempAtt(
+        self.tempAtt = TME(
             in_channels = encoder_params['out_channels'],
             out_channels = encoder_params['out_channels'],
         )
@@ -175,15 +171,6 @@ class CVEOScd4(nn.Module):
         self.softmax = nn.Softmax(dim=1)
         self.sigmoid = nn.Sigmoid()
         self.upsampling = nn.UpsamplingBilinear2d(scale_factor=4)
-                
-        for i in range(self.args.num_segclass):
-            self.register_buffer("queue_A" + str(i), torch.randn(self.args.proj_dim, self.args.queue_len))
-            self.register_buffer("ptr_A" + str(i), torch.zeros(1, dtype=torch.long))
-            exec("self.queue_A" + str(i) + '=' + 'nn.functional.normalize(' + "self.queue_A" + str(i) + ', dim=0)')
-            
-            self.register_buffer("queue_B" + str(i), torch.randn(self.args.proj_dim, self.args.queue_len))
-            self.register_buffer("ptr_B" + str(i), torch.zeros(1, dtype=torch.long))
-            exec("self.queue_B" + str(i) + '=' + 'nn.functional.normalize(' + "self.queue_B" + str(i) + ', dim=0)')     
         
         if self.args.pretrained:            
             self._init_weighets()
@@ -191,6 +178,9 @@ class CVEOScd4(nn.Module):
             self._init_weighets_kaiming(self.encoder, self.decoder, self.head_bcd, self.head_seg, self.proj_head)
         
     def _init_weighets(self):
+        '''
+        pretrained weights can be refered to torchvision.
+        '''
         if self.args.backbone == 'resnet18':
             encoder_pred = torchvision.models.resnet18()
             pre = torch.load('./pretrain/resnet18-f37072fd.pth')
@@ -236,7 +226,7 @@ class CVEOScd4(nn.Module):
                     
     
 
-    def forward(self, img_A, img_B=None, hook=None, label_A=None, label_B=None, label_BCD=None, test=False, warmup=True):
+    def forward(self, img_A, img_B=None, hook=None):
         if hook == 'seg':
             features_A = self.encoder(img_A)
             seg_A = self.seg_decoder(*features_A)
@@ -251,30 +241,24 @@ class CVEOScd4(nn.Module):
             features_B = self.encoder(img_B)
             # seg
             seg_A = self.seg_decoder(*features_A)
-            seg_B = self.seg_decoder(*features_B) # 128
+            seg_B = self.seg_decoder(*features_B)
             logits_A = self.head_seg(seg_A)
-            logits_B = self.head_seg(seg_B) # 128-cls
+            logits_B = self.head_seg(seg_B) 
                 
             # seg-bcd
-            if self.args.only_seg:
-                logits_AB = None
-            elif not self.args.only_seg:
-                if self.args.fusion == 'diff':
-                    logits_AB = torch.abs(logits_A - logits_B) # cls
-                elif self.args.fusion == 'concat':
-                    logits_AB = torch.concat([logits_A, logits_B], dim=1)
+            if self.args.fusion == 'diff':
+                logits_AB = torch.abs(logits_A - logits_B)
+            elif self.args.fusion == 'concat':
+                logits_AB = torch.concat([logits_A, logits_B], dim=1)
             
-            # feat-bcd
+            # feat bcd
             temaatt_features = self.tempAtt(features_A, features_B)
-            logits_featBCD = self.bcd_decoder(*temaatt_features) # 128
-            logits_featBCD = self.head_bcd_feat(logits_featBCD) # 128-cls
+            logits_featBCD = self.bcd_decoder(*temaatt_features) 
+            logits_featBCD = self.head_bcd_feat(logits_featBCD)
 
-            # conc seg-bcd & feat-bcd logits.
-            # conc_logits_BCD = torch.concat([logits_AB, logits_featBCD], dim=1)
+            # CBC
             conc_logits_BCD = logits_AB * logits_featBCD
-            #
-            downsam_logits_BCD, logits_BCD = self.head_bcd(conc_logits_BCD, with_tcl=True) #cls*2-1
-
+            _, logits_BCD = self.head_bcd(conc_logits_BCD)
 
             outputs = {}            
             if self.args.downsample_seg:
@@ -284,7 +268,6 @@ class CVEOScd4(nn.Module):
             outputs['seg_A'] = logits_A
             outputs['seg_B'] = logits_B
             outputs['BCD'] = logits_BCD     
-            
             return outputs
    
         

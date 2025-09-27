@@ -1,1 +1,1 @@
-from .CVEOScd4 import CVEOScd4
+from .MOSCD import MOSCD

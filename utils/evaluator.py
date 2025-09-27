@@ -192,12 +192,6 @@ class SCDEvaluator(object): #  Sek
     def add_batch(self, gt_image, pre_image):
         assert gt_image.shape == pre_image.shape
         self.confusion_matrix += self._generate_matrix(gt_image, pre_image)
-
-    # def _pre_cal(self):
-    #     self.TP = np.diag(self.confusion_matrix)
-    #     self.FP = np.sum(self.confusion_matrix, 0) - self.TP
-    #     self.FN = np.sum(self.confusion_matrix, 1) - self.TP
-    #     self.pre_cal = True
         
     def reset(self):
         self.confusion_matrix = np.zeros((self.num_class,) * 2)

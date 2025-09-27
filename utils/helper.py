@@ -79,8 +79,8 @@ def measure_inference_speed(model, data, max_iter=200, log_interval=50):
  
     
 def get_model(args):
-    if args.model == 'CVEOScd4':
-        return CVEOScd4(args)
+    if args.model == 'MOSCD':
+        return MOSCD(args)
 
    
 if __name__ == '__main__':
