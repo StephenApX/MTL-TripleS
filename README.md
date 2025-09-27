@@ -78,7 +78,7 @@ Predictions can be found in `infer/`.
 ## Results
 
 <div>
-<img src="./docs/exp-scscd7.png" />
+<img src="./docs/exp-scscd7.png" width="730"/>
 </div>
 
 <div>
