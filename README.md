@@ -1,13 +1,20 @@
-# TripleS: Mitigating multi-task learning conflicts for semantic change detection in high-resolution remote sensing imagery
+<div align="center">
+<h1> TripleS: Mitigating multi-task learning conflicts for semantic change detection in high-resolution remote sensing imagery </h1>
+<h5 align="center">
+        <a href="https://www.sciencedirect.com/science/article/pii/S0924271625003776" target='_blank'>[Paper]</a> | <a href="https://github.com/StephenApX/MTL-TripleS" target='_blank'>[Project]</a> | <a href="https://zenodo.org/records/17218853" target='_blank'>[Dataset]</a>
+    </h5>
+</div>
+
 
 This is the official implementation of **[CVEO](https://github.com/cveo)**'s recent research paper published on [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776).
 
-We propose an **MTL-oriented SCD model (MOSCD)**, which mutually enhances bi-temporal features, while ensuring that representations across the subtask branches are coherently correlated. Furthermore, the **TripleS** framework is designed to enhance the optimization of the MTL framework through counteracting the conflicting subtask objectives, which incorporates three novel schemes: Stepwise multi-task optimization, Selective parameter binding, and Scheduling for dynamically training MTL bindings. 
+We propose an **MTL-oriented SCD model (MOSCD)**, which mutually enhances bi-temporal features, while ensuring that representations across the subtask branches are coherently correlated. Furthermore, the **TripleS** framework is designed to enhance the optimization of the MTL framework through counteracting the conflicting subtask objectives, which incorporates three novel schemes: Stepwise multi-task optimization, Selective parameter binding, and Scheduling for dynamically training MTL bindings.
+
+We have constructed two large-scale SCD benchmarks, each spanning representative scenarios in China and occupying diverse landform and land-cover categories. These benchmarks are respectively the **SC-SCD7** dataset locating in south China and **CC-SCD5** dataset focusing on the central China region.
 
 ## Method
 
 * MOSCD model optimized with the proposed MTL framework TripleS.
-
 
 <div align="center">
 <img src="./docs/MOSCD.png"/>
@@ -40,8 +47,8 @@ pip install segmentation-models-pytorch==0.3.4
 
 Download the dataset and perform pre-processing according to the settings described in the paper:
 
-* [HRSCD](https://ieee-dataport.org/open-access/hrscd-high-resolution-semantic-change-detection-dataset) dataset
-* The proposed SC-SCD7 and CC-SCD5 datasets **[Coming soon]**
+* [HRSCD](https://ieee-dataport.org/open-access/hrscd-high-resolution-semantic-change-detection-dataset) dataset.
+* The proposed SC-SCD7 and CC-SCD5 datasets. **[[Link]](https://zenodo.org/records/17218853)**
 
 and organize the dataset according to the `.txt` files in the `/txt` directory.
 
