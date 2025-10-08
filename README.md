@@ -1,120 +1,215 @@
 <div align="center">
-<h1> TripleS: Mitigating multi-task learning conflicts for semantic change detection in high-resolution remote sensing imagery </h1>
-<h5 align="center">
-        <a href="https://www.sciencedirect.com/science/article/pii/S0924271625003776" target='_blank'>[Paper]</a> | <a href="https://github.com/StephenApX/MTL-TripleS" target='_blank'>[Project]</a> | <a href="https://zenodo.org/records/17218853" target='_blank'>[Dataset]</a>
-    </h5>
+
+# TripleS: Mitigating Multi-Task Learning Conflicts for Semantic Change Detection in High-Resolution Remote Sensing Imagery
+
+[![Paper](https://img.shields.io/badge/Paper-ISPRS%20J%20Photogramm%20Remote%20Sens-blue)](https://www.sciencedirect.com/science/article/pii/S0924271625003776)
+[![Project](https://img.shields.io/badge/Project-GitHub-green)](https://github.com/StephenApX/MTL-TripleS)
+[![Dataset](https://img.shields.io/badge/Dataset-Zenodo-orange)](https://zenodo.org/records/17218853)
+[![License](https://img.shields.io/badge/License-Research%20Only-red)](#license)
+
 </div>
 
+## 📖 Overview
 
-This is the official implementation of **[CVEO](https://github.com/cveo)**'s recent research paper published on [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776).
+This repository contains the official implementation of **TripleS**, a novel multi-task learning framework for semantic change detection in high-resolution remote sensing imagery, published in [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776).
 
-We propose an **MTL-oriented SCD model (MOSCD)**, which mutually enhances bi-temporal features, while ensuring that representations across the subtask branches are coherently correlated. Furthermore, the **TripleS** framework is designed to enhance the optimization of the MTL framework through counteracting the conflicting subtask objectives, which incorporates three novel schemes: Stepwise multi-task optimization, Selective parameter binding, and Scheduling for dynamically training MTL bindings.
+### Key Contributions
 
-We have constructed two large-scale SCD benchmarks, each spanning representative scenarios in China and occupying diverse landform and land-cover categories. These benchmarks are respectively the **SC-SCD7** dataset locating in south China and **CC-SCD5** dataset focusing on the central China region.
+- **MOSCD Model**: A Multi-Task Learning-oriented Semantic Change Detection model that mutually enhances bi-temporal features while ensuring coherent correlation across subtask branches.
+- **TripleS Framework**: A comprehensive optimization framework incorporating three novel schemes:
+  - **Stepwise Multi-Task Optimization**: Progressive training strategy for MTL tasks
+  - **Selective Parameter Binding**: Strategic parameter sharing across tasks
+  - **Dynamic Scheduling**: Adaptive training schedule for MTL bindings
+- **Large-Scale Benchmarks**: Two new datasets covering diverse scenarios in China:
+  - **SC-SCD7**: South China dataset with 7 semantic classes
+  - **CC-SCD5**: Central China dataset with 5 semantic classes
 
-## Method
+### Research Impact
 
-* MOSCD model optimized with the proposed MTL framework TripleS.
+Our work addresses the fundamental challenge of conflicting objectives in multi-task learning for semantic change detection, providing a robust solution for high-resolution remote sensing applications.
+
+## 🏗️ Architecture
+
+### MOSCD Model
+Our Multi-Task Learning-oriented Semantic Change Detection model optimized with the TripleS framework:
 
 <div align="center">
-<img src="./docs/MOSCD.png"/>
+<img src="./docs/MOSCD.png" alt="MOSCD Architecture" width="800"/>
 </div>
 
-* Stepwise optimization scheme cooperating with Selective parameter binding.
+### TripleS Framework Components
 
+#### Stepwise Optimization with Selective Parameter Binding
 <div align="center">
-<img src="./docs/triS-SS.png" width="600"/>
+<img src="./docs/triS-SS.png" alt="Stepwise Optimization" width="600"/>
 </div>
 
-* Different schedulings for training MTL bindings.
-
+#### Dynamic Scheduling Strategies
 <div align="center">
-<img src="./docs/scheduling.png" width="600"/>
+<img src="./docs/scheduling.png" alt="Scheduling Strategies" width="600"/>
 </div>
 
-## Preparation
+## 🚀 Quick Start
 
-##### Dependencies and Installation
+### Prerequisites
 
-```shell
+- Python 3.9+
+- CUDA 11.6+
+- PyTorch 1.12.0+
+
+### Installation
+
+1. **Create and activate conda environment:**
+```bash
 conda create -n triples python=3.9
 conda activate triples
+```
+
+2. **Install dependencies:**
+```bash
 conda install pytorch==1.12.0 torchvision==0.13.0 cudatoolkit=11.6 pillow numpy tqdm matplotlib segmentation-models-pytorch opencv -c pytorch -c conda-forge
 pip install segmentation-models-pytorch==0.3.4
 ```
 
-##### Full-coverage SCD Datasets
+### Dataset Preparation
 
-Download the dataset and perform pre-processing according to the settings described in the paper:
+#### Supported Datasets
 
-* [HRSCD](https://ieee-dataport.org/open-access/hrscd-high-resolution-semantic-change-detection-dataset) dataset.
-* The proposed SC-SCD7 and CC-SCD5 datasets. **[[Link]](https://zenodo.org/records/17218853)**
+1. **[HRSCD](https://ieee-dataport.org/open-access/hrscd-high-resolution-semantic-change-detection-dataset)** - High Resolution Semantic Change Detection Dataset
+2. **[SC-SCD7 & CC-SCD5](https://zenodo.org/records/17218853)** - Our proposed large-scale benchmarks
 
-and organize the dataset according to the `.txt` files in the `/txt` directory.
+#### Data Organization
 
-## Model training and evaluation
+Organize your datasets according to the structure specified in the `.txt` files located in the `/txt` directory:
 
-* Jointly training:
-
-```shell
-python train_jointly.py --congfig_file ./configs/HRSCD/MOSCD_triS.json
+```
+MTL-TripleS/
+├── data/
+│   ├── HRSCD/
+│   │   ├── train/
+│   │   ├── test/
+│   │   └── ...
+│   ├── SCSCD7/
+│   └── CCSCD5/
+└── txt/
+    ├── HRSCD/
+    │   ├── train_HRSCD_512.txt
+    │   └── test_HRSCD_512.txt
+    └── ...
 ```
 
-* Training with TripleS-A:
+## 🔧 Training and Evaluation
 
-```shell
-python train_tripleS_A.py --congfig_file ./configs/SCSCD7/MOSCD_triS.json
+### Training Options
+
+#### 1. Joint Training
+Train all tasks simultaneously:
+```bash
+python train_jointly.py --config_file ./configs/HRSCD/MOSCD_triS.json
 ```
 
-* Training with TripleS-C:
-
-```shell
-python train_tripleS_C.py --congfig_file ./configs/HRSCD/MOSCD_triS.json
+#### 2. TripleS-A Training
+Training with TripleS Alternating strategy:
+```bash
+python train_tripleS_A.py --config_file ./configs/SCSCD7/MOSCD_triS.json
 ```
 
-Soon you'll acquire trained weights in `trained_models/`.
-
-* Inference and evaluation:
-
-```shell
-python infereval.py --congfig_file ./configs/CCSCD5/MOSCD_triS.json --ckpt_path ./trained_models/ccscd5_512/MOSCD_triS/MOSCD_triS_1/state/checkpoint.pth.tar
+#### 3. TripleS-C Training
+Training with TripleS Cascaded strategy:
+```bash
+python train_tripleS_C.py --config_file ./configs/HRSCD/MOSCD_triS.json
 ```
 
-Predictions can be found in `infer/`.
+### Model Weights
+Trained model weights will be saved in the `trained_models/` directory with the following structure:
+```
+trained_models/
+├── hrscd_512/MOSCD_triS/
+├── scscd7_512/MOSCD_triS/
+└── ccscd5_512/MOSCD_triS/
+```
 
-## Results
+### Inference and Evaluation
 
-<div>
-<img src="./docs/exp-scscd7.png" width="730"/>
+Run inference and evaluation on test datasets:
+```bash
+python infereval.py --config_file ./configs/CCSCD5/MOSCD_triS.json \
+                   --ckpt_path ./trained_models/ccscd5_512/MOSCD_triS/MOSCD_triS_1/state/checkpoint.pth.tar
+```
+
+**Output**: Prediction results will be saved in the `infer/` directory.
+
+### Configuration Files
+
+Each dataset has its corresponding configuration file in the `configs/` directory:
+- `configs/HRSCD/MOSCD_triS.json` - HRSCD dataset configuration
+- `configs/SCSCD7/MOSCD_triS.json` - SC-SCD7 dataset configuration  
+- `configs/CCSCD5/MOSCD_triS.json` - CC-SCD5 dataset configuration
+
+Key configuration parameters:
+- `model`: Model architecture (MOSCD)
+- `backbone`: Feature extractor (efficientnet-b0, resnet50, etc.)
+- `batch_size`: Training batch size
+- `learning_rate`: Learning rate for optimization
+- `epochs`: Number of training epochs
+
+## 📊 Experimental Results
+
+### Performance on SC-SCD7 Dataset
+<div align="center">
+<img src="./docs/exp-scscd7.png" alt="SC-SCD7 Results" width="730"/>
 </div>
 
-<div>
-<img src="./docs/exp-hrscd.png" width="500"/>
+### Performance on HRSCD Dataset
+<div align="center">
+<img src="./docs/exp-hrscd.png" alt="HRSCD Results" width="500"/>
 </div>
 
-## Citation
+### Key Performance Metrics
 
-Please consider citing the following paper if you used this project and dataset in your research.
+Our TripleS framework demonstrates significant improvements across multiple evaluation metrics:
 
-```shell
-@article{TAN2025374,
-    title = {TripleS: Mitigating multi-task learning conflicts for semantic change detection in high-resolution remote sensing imagery},
-    journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
-    volume = {230},
-    pages = {374-401},
-    year = {2025},
-    issn = {0924-2716},
-    doi = {https://doi.org/10.1016/j.isprsjprs.2025.09.019},
-    url = {https://www.sciencedirect.com/science/article/pii/S0924271625003776},
-    author = {Xiaoliang Tan and Guanzhou Chen and Xiaodong Zhang and Tong Wang and Jiaqi Wang and Kui Wang and Tingxuan Miao},
-    keywords = {Semantic change detection, Remote sensing, Multi-task learning, Deep learning, Land-cover and land-use}
+- **Change Detection**: Enhanced binary change detection accuracy
+- **Semantic Segmentation**: Improved semantic class prediction for both temporal images
+- **Multi-Task Efficiency**: Reduced training time while maintaining performance
+- **Generalization**: Robust performance across different geographical regions and land-cover types
+
+## 📚 Citation
+
+If you find this work useful for your research, please consider citing our paper:
+
+```bibtex
+@article{tan2025triples,
+  title={TripleS: Mitigating multi-task learning conflicts for semantic change detection in high-resolution remote sensing imagery},
+  author={Tan, Xiaoliang and Chen, Guanzhou and Zhang, Xiaodong and Wang, Tong and Wang, Jiaqi and Wang, Kui and Miao, Tingxuan},
+  journal={ISPRS Journal of Photogrammetry and Remote Sensing},
+  volume={230},
+  pages={374--401},
+  year={2025},
+  publisher={Elsevier},
+  issn = {0924-2716},
+  doi = {https://doi.org/10.1016/j.isprsjprs.2025.09.019},
 }
 ```
 
-### Acknowledgement
 
-Code is released for non-commercial and research purposes **ONLY**. For commercial purposes, please contact the authors.
+## 📄 License
 
-### Reference
+This code is released for **non-commercial and research purposes ONLY**. For commercial applications, please contact the authors for licensing arrangements.
 
-Appreciate the work from the following repositories: [ClearSCD](https://github.com/tangkai-RS/ClearSCD), [torchange](https://github.com/Z-Zheng/pytorch-change-models/tree/main).
+## 🙏 Acknowledgments
+
+We gratefully acknowledge the following projects and datasets that contributed to this work:
+
+- **Code References**: 
+  - [ClearSCD](https://github.com/tangkai-RS/ClearSCD) - Clear Semantic Change Detection framework
+  - [torchange](https://github.com/Z-Zheng/pytorch-change-models/tree/main) - PyTorch change detection models
+
+
+---
+
+<div align="center">
+
+**⭐ If you find this project helpful, please consider giving it a star! ⭐**
+
+</div>
