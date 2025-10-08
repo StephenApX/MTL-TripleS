@@ -2,6 +2,8 @@
 
 # TripleS: 缓解高分辨率遥感影像语义变化检测中的多任务学习冲突
 
+**语言**: [English](README.md) | [中文](README_zh.md)
+
 [![论文](https://img.shields.io/badge/Paper-ISPRS%20J%20Photogramm%20Remote%20Sens-blue)](https://www.sciencedirect.com/science/article/pii/S0924271625003776)
 [![项目](https://img.shields.io/badge/Project-GitHub-green)](https://github.com/StephenApX/MTL-TripleS)
 [![数据集](https://img.shields.io/badge/Dataset-Zenodo-orange)](https://zenodo.org/records/17218853)
@@ -11,7 +13,7 @@
 
 ## 📖 概述
 
-本仓库包含了 **TripleS** 的官方实现，这是一个用于高分辨率遥感影像语义变化检测的新型多任务学习框架，已发表在 [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776)。
+本仓库包含 **TripleS** 的官方实现，这是一个用于高分辨率遥感影像语义变化检测的新颖多任务学习框架，由**武汉大学** **[CVEO小组](https://github.com/cveo)** 开发。该工作已发表在 [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776)。
 
 ### 主要贡献
 

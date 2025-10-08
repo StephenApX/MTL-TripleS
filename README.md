@@ -2,6 +2,8 @@
 
 # TripleS: Mitigating Multi-Task Learning Conflicts for Semantic Change Detection in High-Resolution Remote Sensing Imagery
 
+**Language**: [English](README.md) | [中文](README_zh.md)
+
 [![Paper](https://img.shields.io/badge/Paper-ISPRS%20J%20Photogramm%20Remote%20Sens-blue)](https://www.sciencedirect.com/science/article/pii/S0924271625003776)
 [![Project](https://img.shields.io/badge/Project-GitHub-green)](https://github.com/StephenApX/MTL-TripleS)
 [![Dataset](https://img.shields.io/badge/Dataset-Zenodo-orange)](https://zenodo.org/records/17218853)
@@ -11,7 +13,7 @@
 
 ## 📖 Overview
 
-This repository contains the official implementation of **TripleS**, a novel multi-task learning framework for semantic change detection in high-resolution remote sensing imagery, published in [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776).
+This repository contains the official implementation of **TripleS**, a novel multi-task learning framework for semantic change detection in high-resolution remote sensing imagery, developed by the **[CVEO team](https://github.com/cveo)** at **Wuhan University**. This work has been published in [ISPRS Journal of Photogrammetry and Remote Sensing](https://www.sciencedirect.com/science/article/pii/S0924271625003776).
 
 ### Key Contributions
 
